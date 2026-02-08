@@ -1,17 +1,12 @@
 # Dependencies
 node_modules/
-Product-Image-Generator-UI/node_modules/
 
 # Build output
 dist/
-Product-Image-Generator-UI/dist/
 
 # Environment variables
 .env
 .env.local
-
-# Generated images
-public/generated/*.png
 
 # IDE
 .vscode/
