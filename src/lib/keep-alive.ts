@@ -26,7 +26,7 @@ export function startKeepAlive(): void {
   setInterval(async () => {
     try {
       const res = await fetch(healthUrl);
-      const data = await res.json();
+      const data = (await res.json()) as { timestamp: string };
       console.log(`[Keep-Alive] Ping OK at ${data.timestamp}`);
     } catch (err) {
       console.error('[Keep-Alive] Ping failed:', err);
