@@ -4,6 +4,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import generateRouter from './routes/generate';
 import { ensureGeneratedDir } from './lib/image-storage';
+import { startKeepAlive } from './lib/keep-alive';
 
 // Load environment variables
 dotenv.config();
@@ -56,6 +57,9 @@ Generated images served at: /generated/{filename}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   `);
+
+  // Start keep-alive cron (only activates on Render)
+  startKeepAlive();
 });
 
 export default app;
