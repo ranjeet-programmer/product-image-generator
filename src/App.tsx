@@ -1,45 +1,50 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { GeneratorForm } from './components/GeneratorForm';
 import { ImageGallery } from './components/ImageGallery';
-import { generateImages, GenerateRequest } from './api/generate';
-import { Sparkles, AlertCircle, ShoppingBag } from 'lucide-react';
+import { ErrorMessage } from './components/ErrorMessage';
+import { generateImages } from './api/generate';
+import { GenerateRequest, GenerationError } from './types';
+import { processImageUrls } from './utils/imageUtils';
+import { Sparkles, ShoppingBag } from 'lucide-react';
 
 function App() {
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleGenerate = async (data: GenerateRequest) => {
+  const handleGenerate = useCallback(async (data: GenerateRequest) => {
     setIsLoading(true);
     setError(null);
-    setImages([]); 
+    setImages([]);
 
     try {
       const response = await generateImages(data);
       if (response.success && response.images.length > 0) {
-        // Prepend backend URL if the backend returns relative paths
-        // The current backend implementation returns paths starting with /generated/
-        // We need to attach the API base URL's origin
-        const backendOrigin = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
-        const fullUrls = response.images.map(imgData => {
-           // Handle both string paths (legacy) and object paths (current)
-           const imgPath = typeof imgData === 'string' ? imgData : imgData.url;
-           return imgPath.startsWith('http') ? imgPath : `${backendOrigin}${imgPath}`;
-        });
+        const fullUrls = processImageUrls(response.images);
         setImages(fullUrls);
       }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Something went wrong while generating images. Please try again.');
+    } catch (err) {
+      console.error('Generation error:', err);
+      
+      if (err instanceof GenerationError) {
+        setError(err.message);
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const handleDismissError = useCallback(() => {
+    setError(null);
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-12">
-        
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="inline-flex items-center justify-center p-3 bg-blue-600 rounded-2xl shadow-xl shadow-blue-600/20 mb-4">
@@ -54,7 +59,6 @@ function App() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
           {/* Left Column: Form */}
           <div className="lg:col-span-4 lg:sticky lg:top-8 space-y-6">
             <div className="bg-white rounded-2xl p-1 shadow-sm border border-slate-200">
@@ -70,10 +74,12 @@ function App() {
             </div>
 
             {error && (
-              <div className="p-4 bg-red-50 text-red-700 rounded-xl flex items-start gap-3 text-sm border border-red-100">
-                <AlertCircle size={18} className="shrink-0 mt-0.5" />
-                <p>{error}</p>
-              </div>
+              <ErrorMessage
+                message={error}
+                type="error"
+                dismissible
+                onDismiss={handleDismissError}
+              />
             )}
           </div>
 
@@ -88,11 +94,10 @@ function App() {
                   </span>
                 )}
               </div>
-              
+
               <ImageGallery images={images} isLoading={isLoading} />
             </div>
           </div>
-
         </div>
       </div>
     </div>
@@ -100,3 +105,4 @@ function App() {
 }
 
 export default App;
+
