@@ -1,5 +1,32 @@
 // Core type definitions for the product image generator
 
+export type LogoType = 'none' | 'image' | 'text';
+
+export type LogoPosition =
+  | 'center'
+  | 'top-left'
+  | 'top-center'
+  | 'top-right'
+  | 'middle-left'
+  | 'middle-right'
+  | 'bottom-left'
+  | 'bottom-center'
+  | 'bottom-right';
+
+export interface LogoSettings {
+  type: LogoType;
+  content?: string;
+  position: LogoPosition;
+  size: number;
+  opacity: number;
+  rotation?: number;
+  offsetX?: number;
+  offsetY?: number;
+  textColor?: string;
+  fontFamily?: string;
+  smartPositioning?: boolean;
+}
+
 export interface GenerateRequest {
   description: string;
   category: string;
@@ -7,6 +34,7 @@ export interface GenerateRequest {
   angle: string;
   color?: string;
   settings?: GenerateSettings;
+  logo?: LogoSettings;
 }
 
 export interface GenerateSettings {

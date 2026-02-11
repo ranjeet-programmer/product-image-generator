@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { Camera, Layers, Palette, Maximize, Sparkles, Image as ImageIcon } from 'lucide-react';
-import { GenerateRequest } from '../types';
+import { GenerateRequest, LogoSettings } from '../types';
 import { CATEGORIES, STYLES, ANGLES, IMAGE_LIMITS } from '../config';
 import { FormSelect } from './FormSelect';
 import { LoadingSpinner } from './LoadingSpinner';
+import { LogoSettingsComponent } from './LogoSettings';
 
 interface GeneratorFormProps {
   onSubmit: (data: GenerateRequest) => void;
@@ -23,12 +24,26 @@ export const GeneratorForm: React.FC<GeneratorFormProps> = ({ onSubmit, isLoadin
     },
   });
 
+  const [logoSettings, setLogoSettings] = useState<LogoSettings>({
+    type: 'none',
+    position: 'bottom-right',
+    size: 20,
+    opacity: 80,
+  });
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      onSubmit(formData);
+      
+      // Include logo settings if not 'none'
+      const submissionData: GenerateRequest = {
+        ...formData,
+        logo: logoSettings.type !== 'none' ? logoSettings : undefined,
+      };
+      
+      onSubmit(submissionData);
     },
-    [formData, onSubmit]
+    [formData, logoSettings, onSubmit]
   );
 
   const handleChange = useCallback((field: keyof GenerateRequest, value: string) => {
@@ -131,6 +146,22 @@ export const GeneratorForm: React.FC<GeneratorFormProps> = ({ onSubmit, isLoadin
               {formData.settings?.numImages || IMAGE_LIMITS.DEFAULT_IMAGES}
             </span>
           </div>
+        </div>
+      </div>
+
+      {/* Logo Settings */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 mb-3">
+          <Palette size={16} className="text-slate-600" />
+          <label className="block text-sm font-semibold text-slate-700">
+            Logo & Watermark
+          </label>
+        </div>
+        <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+          <LogoSettingsComponent
+            settings={logoSettings}
+            onChange={setLogoSettings}
+          />
         </div>
       </div>
 
